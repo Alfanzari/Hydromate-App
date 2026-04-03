@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -68,7 +72,8 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
 @Composable
 fun HomeScreen(onNavigateToResult: (String) -> Unit) {
-    var weight by remember { mutableStateOf("") }
+    var weightInput by remember { mutableStateOf("") }
+    var isError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -77,29 +82,54 @@ fun HomeScreen(onNavigateToResult: (String) -> Unit) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = stringResource(id = R.string.app_name),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
         Image(
             painter = painterResource(id = R.drawable.botol_airmineral),
-            contentDescription = null,
+            contentDescription = "Logo",
             modifier = Modifier
-                .height(250.dp)
+                .size(150.dp)
                 .padding(bottom = 24.dp)
         )
 
         OutlinedTextField(
-            value = weight,
-            onValueChange = { weight = it },
-            label = { Text(stringResource(R.string.weight_hint)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            value = weightInput,
+            onValueChange = {
+                weightInput = it
+                isError = false
+            },
+            label = { Text(stringResource(id = R.string.weight_hint)) },
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
         )
+
+        if (isError) {
+            Text(
+                text = "Input tidak boleh kosong!",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.Start)
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { if (weight.isNotBlank()) onNavigateToResult(weight) },
+            onClick = {
+                if (weightInput.isNotEmpty()) {
+                    onNavigateToResult(weightInput)
+                } else {
+                    isError = true
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(stringResource(R.string.calculate))
+            Text(stringResource(id = R.string.calculate))
         }
     }
 }
