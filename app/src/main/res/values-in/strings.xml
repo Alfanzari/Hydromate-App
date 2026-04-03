@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">HydroMate</string>
+    <string name="weight_hint">Masukkan Berat Badan (kg)</string>
+    <string name="calculate">Hitung</string>
+    <string name="result_title">Kebutuhan Air Harian</string>
+    <string name="share_msg">Aku butuh minum %s liter hari ini!</string>
+</resources>
