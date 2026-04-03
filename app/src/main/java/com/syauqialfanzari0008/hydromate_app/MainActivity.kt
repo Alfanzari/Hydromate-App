@@ -1,10 +1,12 @@
 package com.syauqialfanzari0008.hydromate_app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,14 +14,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,19 +53,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HydromateAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppNavigation(modifier = Modifier.padding(innerPadding))
-                }
+                AppNavigation()
             }
         }
     }
 }
 
 @Composable
-fun AppNavigation(modifier: Modifier = Modifier) {
+fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home", modifier = modifier) {
+    NavHost(navController = navController, startDestination = "home") {
         composable("home") {
             HomeScreen(onNavigateToResult = { weight ->
                 navController.navigate("result/$weight")
@@ -75,66 +84,126 @@ fun HomeScreen(onNavigateToResult: (String) -> Unit) {
     var weightInput by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(id = R.string.app_name),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        Image(
-            painter = painterResource(id = R.drawable.botol_airmineral),
-            contentDescription = "Logo",
-            modifier = Modifier
-                .size(150.dp)
-                .padding(bottom = 24.dp)
-        )
-
-        OutlinedTextField(
-            value = weightInput,
-            onValueChange = {
-                weightInput = it
-                isError = false
-            },
-            label = { Text(stringResource(id = R.string.weight_hint)) },
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        if (isError) {
-            Text(
-                text = "Input tidak boleh kosong!",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.align(Alignment.Start)
-            )
+    Scaffold(
+        topBar = {
+            @OptIn(ExperimentalMaterial3Api::class)
+            TopAppBar(title = { Text(stringResource(id = R.string.app_name)) })
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                if (weightInput.isNotEmpty()) {
-                    onNavigateToResult(weightInput)
-                } else {
-                    isError = true
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(stringResource(id = R.string.calculate))
+            Image(
+                painter = painterResource(id = R.drawable.botol_airmineral),
+                contentDescription = "Logo",
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(bottom = 24.dp)
+            )
+
+            OutlinedTextField(
+                value = weightInput,
+                onValueChange = {
+                    weightInput = it
+                    isError = false
+                },
+                label = { Text(stringResource(id = R.string.weight_hint)) },
+                isError = isError,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (isError) {
+                Text(
+                    text = "Input tidak boleh kosong!",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    if (weightInput.isNotEmpty()) {
+                        onNavigateToResult(weightInput)
+                    } else {
+                        isError = true
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(id = R.string.calculate))
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResultScreen(weight: String, onBack: () -> Unit) {
-    Text(text = "Result Screen - Weight: $weight")
+    val context = LocalContext.current
+
+    val weightValue = weight.toDoubleOrNull() ?: 0.0
+    val waterNeeded = (weightValue * 30) / 1000
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.result_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Target Kamu:",
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Text(
+                text = "$waterNeeded Liter / Hari",
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "Kata HydroMate, aku butuh minum $waterNeeded liter air hari ini!"
+                        )
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Bagikan ke:"))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Share, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Bagikan Hasil")
+            }
+        }
+    }
 }
