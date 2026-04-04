@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -42,14 +44,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.syauqialfanzari0008.hydromate_app.ui.theme.HydromateAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -70,14 +75,22 @@ fun AppNavigation() {
 
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
-            HomeScreen(onNavigateToResult = { weight ->
-                navController.navigate("result/$weight")
+            HomeScreen(onNavigateToResult = { weight, isActive ->
+                navController.navigate("result/$weight/$isActive")
             })
         }
-        composable("result/{weight}") { backStackEntry ->
+        composable(
+            route = "result/{weight}/{isActive}",
+            arguments = listOf(
+                navArgument("weight") { type = NavType.StringType },
+                navArgument("isActive") { type = NavType.BoolType }
+            )
+        ) { backStackEntry ->
             val weight = backStackEntry.arguments?.getString("weight") ?: "0"
+            val isActive = backStackEntry.arguments?.getBoolean("isActive") ?: false
             ResultScreen(
                 weight = weight,
+                isActive = isActive,
                 onBack = { navController.popBackStack() }
             )
         }
@@ -86,9 +99,10 @@ fun AppNavigation() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onNavigateToResult: (String) -> Unit) {
+fun HomeScreen(onNavigateToResult: (String, Boolean) -> Unit) {
     var weightInput by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+    var isActiveMode by remember { mutableStateOf(false) }
 
     var showDialog by remember { mutableStateOf(false) }
 
@@ -149,7 +163,7 @@ fun HomeScreen(onNavigateToResult: (String) -> Unit) {
                     isError = false
                 },
                 label = { Text(stringResource(id = R.string.weight_hint)) },
-                isError = isError, // Poin 3
+                isError = isError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -163,12 +177,35 @@ fun HomeScreen(onNavigateToResult: (String) -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = "Mode Aktivitas Tinggi", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = "Aktifkan jika kamu banyak berolahraga hari ini",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+                
+                Switch(
+                    checked = isActiveMode,
+                    onCheckedChange = { isActiveMode = it }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
                     if (weightInput.isNotEmpty()) {
-                        onNavigateToResult(weightInput)
+                        onNavigateToResult(weightInput, isActiveMode)
                     } else {
                         isError = true
                     }
@@ -183,11 +220,12 @@ fun HomeScreen(onNavigateToResult: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResultScreen(weight: String, onBack: () -> Unit) {
+fun ResultScreen(weight: String, isActive: Boolean, onBack: () -> Unit) {
     val context = LocalContext.current
 
     val weightValue = weight.toDoubleOrNull() ?: 0.0
-    val waterNeeded = (weightValue * 30) / 1000
+    val baseWater = (weightValue * 30) / 1000
+    val totalWater = if (isActive) baseWater + 0.5 else baseWater
 
     Scaffold(
         topBar = {
@@ -215,7 +253,7 @@ fun ResultScreen(weight: String, onBack: () -> Unit) {
             )
 
             Text(
-                text = "$waterNeeded Liter / Hari",
+                text = "$totalWater Liter / Hari",
                 style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(vertical = 16.dp)
@@ -229,7 +267,7 @@ fun ResultScreen(weight: String, onBack: () -> Unit) {
                         type = "text/plain"
                         putExtra(
                             Intent.EXTRA_TEXT,
-                            "Kata HydroMate, aku butuh minum $waterNeeded liter air hari ini!"
+                            "Kata HydroMate, aku butuh minum $totalWater liter air hari ini!"
                         )
                     }
                     context.startActivity(Intent.createChooser(shareIntent, "Bagikan ke:"))
