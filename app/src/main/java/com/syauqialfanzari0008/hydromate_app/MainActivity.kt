@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package com.syauqialfanzari0008.hydromate_app
 
 import android.content.Intent
@@ -20,7 +22,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,25 +84,56 @@ fun AppNavigation() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onNavigateToResult: (String) -> Unit) {
     var weightInput by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
 
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("About Me") },
+            text = {
+                Column {
+                    Text("Nama: Syauqi Al Fanzari")
+                    Text("NIM: 607062400008")
+                    Text("Kelas: D3IF-48-03")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Alasan Buat: Aplikasi ini dibuat untuk membantu teman-teman agar tetap terhidrasi seharian agar konsentrasi tetap terjaga.")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Tutup")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
-            TopAppBar(title = { Text(stringResource(id = R.string.app_name)) })
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = { showDialog = true }) {
+                        Icon(Icons.Default.Info, contentDescription = "About Me")
+                    }
+                }
+            )
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Image(
                 painter = painterResource(id = R.drawable.botol_airmineral),
                 contentDescription = "Logo",
@@ -113,7 +149,7 @@ fun HomeScreen(onNavigateToResult: (String) -> Unit) {
                     isError = false
                 },
                 label = { Text(stringResource(id = R.string.weight_hint)) },
-                isError = isError,
+                isError = isError, // Poin 3
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
