@@ -188,9 +188,12 @@ fun HomeScreen(onNavigateToResult: (String, Boolean) -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "Mode Aktivitas Tinggi", style = MaterialTheme.typography.bodyLarge)
                     Text(
-                        text = "Aktifkan jika kamu banyak berolahraga hari ini",
+                        text = stringResource(id = R.string.high_activity_mode),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = stringResource(id = R.string.high_activity_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
@@ -269,7 +272,7 @@ fun ResultScreen(weight: String, isActive: Boolean, onBack: () -> Unit) {
                         type = "text/plain"
                         putExtra(
                             Intent.EXTRA_TEXT,
-                            "Kata HydroMate, aku butuh minum $totalWater liter air hari ini!"
+                            context.getString(R.string.share_msg, totalWater.toString())
                         )
                     }
                     context.startActivity(Intent.createChooser(shareIntent, "Bagikan ke:"))

@@ -4,4 +4,6 @@
     <string name="calculate">Hitung</string>
     <string name="result_title">Kebutuhan Air Harian</string>
     <string name="share_msg">Aku butuh minum %s liter hari ini!</string>
+    <string name="high_activity_mode">Mode Aktivitas Tinggi</string>
+    <string name="high_activity_desc">Aktifkan jika kamu banyak berolahraga hari ini</string>
 </resources>
