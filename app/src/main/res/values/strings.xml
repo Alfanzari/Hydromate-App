@@ -3,7 +3,7 @@
     <string name="weight_hint">Enter Weight (kg)</string>
     <string name="calculate">Calculate</string>
     <string name="result_title">Daily Water Need</string>
-    <string name="share_msg">I need to drink %s liters today!</string>
+    <string name="share_msg">HydroMate says I need to drink %s liters today!</string>
     <string name="high_activity_mode">High Activity Mode</string>
     <string name="high_activity_desc">Enable if you exercise a lot today</string>
 </resources>
